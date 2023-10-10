@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      prometheus:
+        condition: service_started
+    environment:
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_BASIC_ENABLED=false
+    volumes:
+      - ./metrics/grafana-dashboard-provider.yaml:/etc/grafana/provisioning/dashboards/bigcord-dashboard-provider.yaml:Z
+      - ./metrics/dashboards:/var/lib/grafana/dashboards:Z
+      - ./metrics/grafana-prometheus-datasource.yaml:/etc/grafana/provisioning/datasources/prometheus-datasource.yaml:Z
+      - grafana-data:/var/lib/grafana
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./metrics/prometheus.yaml:/etc/prometheus/prometheus.yml:Z
+      - prometheus-data:/prometheus
+
+  clickhouse:
+    image: clickhouse/clickhouse-server
+    volumes:
+      - ./warehouse/clickhouse.xml:/etc/clickhouse-server/config.d/bigcord.xml:Z
+      - ./warehouse/initdb.d/:/docker-entrypoint-initdb.d/:Z
+      - clickhouse-data:/var/lib/warehouse/
+    ports:
+      - "127.0.0.1:8123:8123"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9363:9363"
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "localhost:8123/ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  superset:
+    build: ./superset
+    volumes:
+      - superset-data:/data/
+    ports:
+      - "127.0.0.1:8088:8088"
+    environment:
+      - SUPERSET_SECRET_KEY=supersecret
+      - SUPERSET_INIT_ADMIN_EMAIL=mail@yarn.network
+      - SUPERSET_INIT_ADMIN_USERNAME=admin
+      - SUPERSET_INIT_ADMIN_PASSWORD=admin
+      - ACCESS_LOG_FILE=/dev/null
+      - SQLALCHEMY_DATABASE_URI=sqlite:////data/superset.db
+      - CLICKHOUSE_DATASOURCE_URI=clickhousedb://default@clickhouse:8123/default
+
+  scraping:
+    build:
+      dockerfile: scraping/Dockerfile
+      context: .
+      
+    volumes:
+      - scraping-media:/data/media/
+    ports:
+      - "127.0.0.1:3926:3926"
+      - "127.0.0.1:2345:2345"
+    environment:
+      # - "SCRAPING_SQLITE_DSN=file::memory:?cache=shared"
+      - SCRAPING_CLICKHOUSE_HOSTS=clickhouse:9000
+      - SCRAPING_CLICKHOUSE_DATABASE=default
+      - SCRAPING_CLICKHOUSE_USERNAME=default
+      - SCRAPING_CLICKHOUSE_PASSWORD=
+      - SCRAPING_DISCORD_TOKEN
+      - ENVIRONMENT=development
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+volumes:
+  grafana-data:
+  prometheus-data:
+  clickhouse-data:
+  superset-data:
+  scraping-media:

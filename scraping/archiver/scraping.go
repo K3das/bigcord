@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/K3das/bigcord/scraping/store/db"
 	storeSchema "github.com/K3das/bigcord/scraping/store/schema"
 	"github.com/bwmarrin/discordgo"
-	"strconv"
-	"time"
 )
 
 func (a *Archiver) ScrapeChannel(ctx context.Context, c string) (err error) {
@@ -31,8 +32,11 @@ func (a *Archiver) ScrapeChannel(ctx context.Context, c string) (err error) {
 			return fmt.Errorf("error preparing batch: %w", err)
 		}
 
-		channelRow := TranslateDiscordChannel(channel)
-		err = batch.AppendStruct(&channelRow)
+		channelRow, err := TranslateDiscordChannel(channel)
+		if err != nil {
+			return fmt.Errorf("error translating channel: %w", err)
+		}
+		err = batch.AppendStruct(channelRow)
 		if err != nil {
 			return fmt.Errorf("error appending channel to batch: %w", err)
 		}

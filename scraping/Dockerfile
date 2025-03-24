@@ -1,4 +1,4 @@
-FROM node:20-slim AS ui-build
+FROM node:22 AS ui-build
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -12,7 +12,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 RUN VITE_COMMIT_HASH="$(cat .git/$(cat .git/HEAD | cut -d' ' -f2) | cut -c1-12)" pnpm run build
 
-FROM golang:1.20-alpine as build
+FROM golang:1.23-alpine as build
 
 RUN apk add --update --no-cache build-base
 

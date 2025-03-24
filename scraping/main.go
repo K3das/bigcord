@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/K3das/bigcord/scraping/api"
 	"github.com/K3das/bigcord/scraping/archiver"
 	"github.com/K3das/bigcord/scraping/jobs"
@@ -12,7 +14,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"net/http"
 )
 
 var CommitHash = "INVALID_COMMIT"
@@ -29,8 +30,6 @@ type config struct {
 	ClickhousePassword string   `env:"CLICKHOUSE_PASSWORD,required"`
 
 	DiscordToken string `env:"DISCORD_TOKEN,required"`
-
-	ChannelIDs []string `env:"CHANNEL_IDS,required"`
 }
 
 func main() {

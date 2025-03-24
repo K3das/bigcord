@@ -28,7 +28,9 @@ CREATE TABLE IF NOT EXISTS messages
     `thread_id` String,
 
     `embed_links` Nested(url String, type String),
-    `reactions` Nested(id String, name String, count Int64)
+    `reactions` Nested(id String, name String, count Int64),
+
+    `full_json` String
 ) ENGINE = ReplacingMergeTree ORDER BY (message_id, channel_id);
 
 CREATE TABLE IF NOT EXISTS channels
@@ -45,5 +47,7 @@ CREATE TABLE IF NOT EXISTS channels
     `owner_id` String,
     `parent_id` String,
 
-    `applied_tags` Array(String)
+    `applied_tags` Array(String),
+
+    `full_json` String
 ) ENGINE = ReplacingMergeTree ORDER BY channel_id;

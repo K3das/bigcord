@@ -29,6 +29,7 @@ type Message struct {
 	ReactionsID          []string     `ch:"reactions.id"`
 	ReactionsName        []string     `ch:"reactions.name"`
 	ReactionsCount       []int64      `ch:"reactions.count"`
+	FullJson             string       `ch:"full_json"`
 }
 
 type Channel struct {
@@ -41,4 +42,5 @@ type Channel struct {
 	OwnerID     string   `ch:"owner_id"`
 	ParentID    string   `ch:"parent_id"`
 	AppliedTags []string `ch:"applied_tags"`
+	FullJson    string   `ch:"full_json"`
 }

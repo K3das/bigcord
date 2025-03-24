@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+
 	api "github.com/K3das/bigcord/scraping/api/types"
 	"github.com/K3das/bigcord/scraping/warehouse"
 	"github.com/bwmarrin/discordgo"
@@ -71,33 +72,19 @@ func (a *Archiver) CountMessages(ctx context.Context, guild, channel string) (to
 }
 
 type Sticker struct {
-	ID          string                  `json:"id"`
-	PackID      string                  `json:"pack_id"`
-	Name        string                  `json:"name"`
-	Description string                  `json:"description"`
-	Tags        string                  `json:"tags"`
-	Type        discordgo.StickerType   `json:"type"`
-	FormatType  discordgo.StickerFormat `json:"format_type"`
-	Available   bool                    `json:"available"`
-	GuildID     string                  `json:"guild_id"`
-	SortValue   int                     `json:"sort_value"`
+	ID         string                  `json:"id"`
+	Name       string                  `json:"name"`
+	FormatType discordgo.StickerFormat `json:"format_type"`
 }
 
-func TranslateDiscordStickers(input []*discordgo.Sticker) []*Sticker {
+func TranslateDiscordStickers(input []*discordgo.StickerItem) []*Sticker {
 	output := make([]*Sticker, 0, len(input))
 
 	for _, s := range input {
 		sticker := &Sticker{
-			ID:          s.ID,
-			PackID:      s.PackID,
-			Name:        s.Name,
-			Description: s.Description,
-			Tags:        s.Tags,
-			Type:        s.Type,
-			FormatType:  s.FormatType,
-			Available:   s.Available,
-			GuildID:     s.GuildID,
-			SortValue:   s.SortValue,
+			ID:         s.ID,
+			Name:       s.Name,
+			FormatType: s.FormatType,
 		}
 		output = append(output, sticker)
 	}
@@ -201,10 +188,16 @@ func TranslateDiscordMessage(dgMessage *discordgo.Message) (*warehouse.Message, 
 		message.MessageReferenceJSON = string(messageReferenceJSON)
 	}
 
+	fullJson, err := json.Marshal(dgMessage)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling message: %w", err)
+	}
+	message.FullJson = string(fullJson)
+
 	return message, nil
 }
 
-func TranslateDiscordChannel(discordChannel *discordgo.Channel) warehouse.Channel {
+func TranslateDiscordChannel(discordChannel *discordgo.Channel) (*warehouse.Channel, error) {
 	channel := warehouse.Channel{
 		ChannelID:   discordChannel.ID,
 		GuildID:     discordChannel.GuildID,
@@ -217,7 +210,13 @@ func TranslateDiscordChannel(discordChannel *discordgo.Channel) warehouse.Channe
 		AppliedTags: discordChannel.AppliedTags,
 	}
 
-	return channel
+	fullJson, err := json.Marshal(discordChannel)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling channel: %w", err)
+	}
+	channel.FullJson = string(fullJson)
+
+	return &channel, nil
 }
 
 func (a *Archiver) GetGuild(ctx context.Context, guildID string) (guild *api.Guild, err error) {

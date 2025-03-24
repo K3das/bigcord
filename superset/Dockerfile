@@ -9,7 +9,7 @@ RUN mkdir /data && chown -R superset:superset /data
 USER superset
 
 ENV PIP_NO_CACHE_DIR=1
-RUN pip3 install pip install clickhouse-connect
+RUN pip3 install clickhouse-connect
 
 COPY config.py /app/custom_config.py
 ENV SUPERSET_CONFIG_PATH /app/custom_config.py

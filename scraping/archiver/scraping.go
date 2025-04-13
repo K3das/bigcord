@@ -136,21 +136,9 @@ func (a *Archiver) ScrapePage(ctx context.Context, channel *discordgo.Channel, a
 			messagesProcessedCounter.WithLabelValues(ChannelTypeString(channel.Type), id).Inc()
 		}
 
-		if message.Thread != nil {
-			err := a.ScrapeChannel(ctx, message.Thread.ID)
-			if err != nil {
-				return "0", fmt.Errorf("error scraping thread: %w", err)
-			}
-		}
-
 		messageRow, err := TranslateDiscordMessage(message)
 		if err != nil {
 			return "0", fmt.Errorf("error translating message: %w", err)
-		}
-
-		err = a.DownloadAttachments(ctx, message)
-		if err != nil {
-			return "", err
 		}
 
 		err = batch.AppendStruct(messageRow)
@@ -174,6 +162,25 @@ func (a *Archiver) ScrapePage(ctx context.Context, channel *discordgo.Channel, a
 		err = batch.Send()
 		if err != nil {
 			return "0", fmt.Errorf("error inserting messages: %w", err)
+		}
+	} else {
+		err = batch.Abort()
+		if err != nil {
+			return "0", fmt.Errorf("aborting batch: %w", err)
+		}
+	}
+
+	for _, message := range channelMessages {
+		if message.Thread != nil {
+			err := a.ScrapeChannel(ctx, message.Thread.ID)
+			if err != nil {
+				return "0", fmt.Errorf("error scraping thread: %w", err)
+			}
+		}
+
+		err = a.DownloadAttachments(ctx, message)
+		if err != nil {
+			return "", fmt.Errorf("downloading attachment: %w", err)
 		}
 	}
 

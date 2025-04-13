@@ -25,9 +25,10 @@ services:
   clickhouse:
     image: clickhouse/clickhouse-server
     volumes:
-      - ./warehouse/clickhouse.xml:/etc/clickhouse-server/config.d/bigcord.xml:Z
-      - ./warehouse/initdb.d/:/docker-entrypoint-initdb.d/:Z
-      - clickhouse-data:/var/lib/warehouse/
+      - ./warehouse-config/clickhouse.xml:/etc/clickhouse-server/config.d/config.xml:Z
+      - ./warehouse-config/users.xml:/etc/clickhouse-server/users.d/users.xml:Z
+      - ./warehouse-config/initdb.d/:/docker-entrypoint-initdb.d/:Z
+      - clickhouse-data:/var/lib/clickhouse/
     environment:
       - CLICKHOUSE_PASSWORD=meow
     ports:
@@ -52,7 +53,7 @@ services:
       - SUPERSET_INIT_ADMIN_PASSWORD=admin
       - ACCESS_LOG_FILE=/dev/null
       - SQLALCHEMY_DATABASE_URI=sqlite:////data/superset.db
-      - CLICKHOUSE_DATASOURCE_URI=clickhousedb://default@clickhouse:8123/default
+      - CLICKHOUSE_DATASOURCE_URI=clickhousedb://default:meow@clickhouse:8123/default
 
   scraping:
     build:

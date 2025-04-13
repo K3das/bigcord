@@ -8,8 +8,7 @@ const Modal = (props: { children: JSX.Element, title: string, close: () => void,
             <div
                 class="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
             >
-                <div class="relative w-auto my-6 mx-auto max-w-3xl">
-
+                <div class="relative w-auto my-6 mx-auto max-w-3xl max-h-screen">
                     <div
                         class="border-0 shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                         <div

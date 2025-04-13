@@ -3,10 +3,11 @@ package warehouse
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"go.uber.org/zap"
-	"time"
 )
 
 func NewWarehouseConnection(ctx context.Context, rawLog *zap.Logger, hosts []string, database, username, password string) (driver.Conn, error) {

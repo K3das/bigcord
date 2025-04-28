@@ -17,4 +17,6 @@ for table in "default.messages" "default.channels"; do
   echo "Exporting $table to $filename"
   compose exec clickhouse clickhouse-client -q "SELECT * FROM $table FINAL" --format Parquet > "$filename"
 done
+
+compose cp scraping:/data/media data/media
 ```
